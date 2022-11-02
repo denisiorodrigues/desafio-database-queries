@@ -13,18 +13,42 @@ export class GamesRepository implements IGamesRepository {
   }
 
   async findByTitleContaining(param: string): Promise<Game[]> {
-    return this.repository
-      .createQueryBuilder()
-      // Complete usando query builder
+    // Complete usando query builder
+    return await this.repository
+      .createQueryBuilder("game") 
+      .where("UPPER(game.title) like UPPER(:title)", {title: `%${param}%`})
+      .getMany();
   }
 
   async countAllGames(): Promise<[{ count: string }]> {
-    return this.repository.query(); // Complete usando raw query
+    // Complete usando raw query
+    return await this.repository.query(`SELECT COUNT(*) FROM games`); 
   }
 
   async findUsersByGameId(id: string): Promise<User[]> {
-    return this.repository
-      .createQueryBuilder()
-      // Complete usando query builder
+    // Complete usando query builder
+    // return await this.repository
+    //   .createQueryBuilder("game")
+    //   .innerJoinAndSelect("game.users","user")
+    //   .from(User, "user")
+    //   .select("game.users", "users")
+    //   .where("game.id = :game_id ", {game_id: id})
+    //   .getMany();
+
+
+    return await this.repository.createQueryBuilder("game")
+    .from(User, "users")
+    .innerJoin("game.users", "user")
+    .where("game.id = :game_id", { game_id: id })
+    .getMany();
+
+    return await this.repository.createQueryBuilder("user")
+    .innerJoinAndSelect("game.users","user")
+    .where("game.id = :game_id", {game_id: id})
+    .addFrom(User, "user")
+    .printSql()
+    .getMany();
+
+
   }
 }
